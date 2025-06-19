@@ -1,3 +1,5 @@
+const userId = `user_${Math.random().toString(36).substring(2, 10)}`; // Unique per session
+
 function toggleChat() {
     let chatContainer = document.getElementById("chatContainer");
     chatContainer.classList.toggle("hidden");
@@ -10,18 +12,18 @@ async function sendMessage() {
 
     appendMessage("You: " + message, "user");
     inputField.value = "";
-    removeTypingIndicator(); // Ensure only one indicator at a time
+    removeTypingIndicator();
     showTypingIndicator();
 
     try {
-        const res = await fetch("http://localhost:3000/chat", {
+        const res = await fetch("/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message })
+            body: JSON.stringify({ message, userId }) // ✅ Send userId
         });
         const data = await res.json();
         removeTypingIndicator();
-        appendMessage("Serenity: " + data.reply, "Serenity");
+        appendMessage("Serenity: " + (data.reply || "Sorry, something went wrong!"), "Serenity");
     } catch (error) {
         removeTypingIndicator();
         appendMessage("Serenity: Sorry, something went wrong!", "bot");
@@ -40,13 +42,11 @@ function appendMessage(text, sender) {
 }
 
 function handleKeyPress(event) {
-    if (event.key === "Enter") {
-        sendMessage();
-    }
+    if (event.key === "Enter") sendMessage();
 }
 
 function showTypingIndicator() {
-    removeTypingIndicator(); // Prevent duplicate indicators
+    removeTypingIndicator();
     let chatBox = document.getElementById("chatBox");
     let div = document.createElement("div");
     div.id = "typingIndicator";
@@ -65,7 +65,7 @@ function scrollToBottom() {
     let chatBox = document.getElementById("chatBox");
     setTimeout(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
-    }, 50); // Allow time for DOM updates
+    }, 50);
 }
 
 function startListening() {
